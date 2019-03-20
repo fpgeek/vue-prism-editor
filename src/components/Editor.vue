@@ -1,12 +1,34 @@
 <template>
   <div class="prism-editor-wrapper">
-    <div class="prism-editor__line-numbers" aria-hidden="true" v-if="lineNumbers" :style="{'min-height': lineNumbersHeight}">
-      <div class="prism-editor__line-width-calc" style="height: 0px; visibility: hidden; pointer-events: none;">999</div>
-      <div class="prism-editor__line-number token comment" v-for="line in lineNumbersCount" :key="line">{{line}}</div>
+    <div
+      class="prism-editor__line-numbers"
+      aria-hidden="true"
+      v-if="lineNumbers"
+      :style="{ 'min-height': lineNumbersHeight }"
+    >
+      <div
+        class="prism-editor__line-width-calc"
+        style="height: 0px; visibility: hidden; pointer-events: none;"
+      >
+        999
+      </div>
+      <div
+        class="prism-editor__line-number token comment"
+        v-for="(line, $index) in lineNumbersCount"
+        :key="$index"
+      >
+        {{
+          $index === 0
+            ? line
+            : lineNumbersCount[$index] === lineNumbersCount[$index - 1]
+            ? "-"
+            : line
+        }}
+      </div>
     </div>
     <pre
       class="prism-editor__code"
-      :class="{['language-'+language]: true}"
+      :class="{ ['language-' + language]: true }"
       ref="pre"
       v-html="content"
       :contenteditable="!readonly"
@@ -18,7 +40,7 @@
       autocomplete="off"
       autocorrect="off"
       data-gramm="false"
-      ></pre>
+    ></pre>
   </div>
 </template>
 
@@ -101,10 +123,17 @@ export default {
       return prism(this.codeData, this.language);
     },
     lineNumbersCount() {
-      let totalLines = this.codeData.split(/\r\n|\n/).length;
-      // TODO: Find a better way of doing this - ignore last line break (os spesific etc.)
+      let splitCommands = this.codeData.split(/\r\n|\n/);
+      let count = 1;
+      let totalLines = [];
+      splitCommands.forEach(item => {
+        if (item.includes("\\")) totalLines.push(count);
+        else {
+          totalLines.push(count++);
+        }
+      });
       if (this.codeData.endsWith("\n")) {
-        totalLines--;
+        totalLines.splice(-1, 1);
       }
       return totalLines;
     }
@@ -340,7 +369,6 @@ export default {
   }
 };
 </script>
-
 
 <style>
 .prism-editor-wrapper code {
